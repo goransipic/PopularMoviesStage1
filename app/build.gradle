@@ -8,6 +8,9 @@ android {
         buildConfigField "String", "BASE_URL", "\"https://api.themoviedb.org/3/movie/\""
         buildConfigField "String", "API_KEY", "\"171921b27306455ba9d71bd99d0cfe6c\""
         buildConfigField "String", "BASE_POSTER_PATH", "\"http://image.tmdb.org/t/p/w185\""
+        buildConfigField "String", "POPULAR_END_POINT", "\"popular\""
+        buildConfigField "String", "TOP_RATED_ENDPOINT", "\"top_rated\""
+        buildConfigField "String", "API_ENDPOINT", "\"api_point\""
         minSdkVersion 16
         targetSdkVersion 24
         versionCode 1

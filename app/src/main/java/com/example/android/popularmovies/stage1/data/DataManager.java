@@ -68,6 +68,31 @@ public class DataManager {
                 });
     }
 
+    public void getTopRatedMovies(final NetworkTask networkTask) {
+        if (mApiMovies == null) {
+            mApiMovies = mRetrofit.create(ApiMovies.class);
+        }
+        mApiMovies.getTopRatedMovies(BuildConfig.API_KEY)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Response<MovieDbResult>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        networkTask.onError(e);
+                    }
+
+                    @Override
+                    public void onNext(Response<MovieDbResult> movieDbResultResponse) {
+                        networkTask.onNext(movieDbResultResponse);
+                    }
+                });
+    }
+
    public interface NetworkTask {
         void onError(Throwable e);
 

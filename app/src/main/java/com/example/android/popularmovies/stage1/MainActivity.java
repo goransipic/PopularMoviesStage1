@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -31,12 +34,43 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         getSupportLoaderManager().initLoader(0, null, this);
 
-        mProgressBar.setVisibility(View.VISIBLE);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.popular_item:
+                Bundle bundlePopular = new Bundle();
+                bundlePopular.putString(BuildConfig.API_ENDPOINT, BuildConfig.POPULAR_END_POINT);
+                getSupportLoaderManager().restartLoader(0, bundlePopular, MainActivity.this);
+                return true;
+            case R.id.top_rated:
+                Bundle bundleTopRated = new Bundle();
+                bundleTopRated.putString(BuildConfig.API_ENDPOINT, BuildConfig.TOP_RATED_ENDPOINT);
+                getSupportLoaderManager().restartLoader(0, bundleTopRated, MainActivity.this);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
     public Loader<MovieDbResult> onCreateLoader(int id, Bundle args) {
-        return new MovieLoader(this);
+        mProgressBar.setVisibility(View.VISIBLE);
+        if (args == null) {
+            args = new Bundle();
+            args.putString(BuildConfig.API_ENDPOINT, BuildConfig.POPULAR_END_POINT);
+        }
+        return new MovieLoader(this, args);
     }
 
     @Override

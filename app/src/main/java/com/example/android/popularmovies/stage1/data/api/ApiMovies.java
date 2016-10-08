@@ -1,5 +1,7 @@
 package com.example.android.popularmovies.stage1.data.api;
 
+import com.example.android.popularmovies.stage1.BuildConfig;
+
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.GET;
@@ -12,7 +14,8 @@ import rx.Observable;
 
 public interface ApiMovies {
 
-    @GET("popular")
+    @GET(BuildConfig.POPULAR_END_POINT)
     Observable<Response<MovieDbResult>> getPopularMovies(@Query("api_key") String apiKey);
-
+    @GET(BuildConfig.TOP_RATED_ENDPOINT)
+    Observable<Response<MovieDbResult>> getTopRatedMovies(@Query("api_key") String apiKey);
 }
