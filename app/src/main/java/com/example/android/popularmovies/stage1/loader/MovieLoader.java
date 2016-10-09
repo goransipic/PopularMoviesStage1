@@ -5,6 +5,7 @@ import android.graphics.Movie;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.Loader;
+import android.util.Log;
 
 import com.example.android.popularmovies.stage1.BuildConfig;
 import com.example.android.popularmovies.stage1.data.DataManager;
@@ -46,6 +47,7 @@ public class MovieLoader extends Loader<MovieDbResult> {
                 DataManager.getInstance().getPopularMovies(new DataManager.NetworkTask() {
                     @Override
                     public void onError(Throwable e) {
+                        deliverResult(null);
                     }
 
                     @Override
@@ -57,6 +59,7 @@ public class MovieLoader extends Loader<MovieDbResult> {
                 DataManager.getInstance().getTopRatedMovies(new DataManager.NetworkTask() {
                     @Override
                     public void onError(Throwable e) {
+                        deliverResult(null);
                     }
 
                     @Override
@@ -69,6 +72,11 @@ public class MovieLoader extends Loader<MovieDbResult> {
     }
 
     @Override
+    protected void onReset() {
+        Log.d(TAG, "onReset: called");
+    }
+
+    @Override
     public void deliverResult(MovieDbResult data) {
         mMovieDbResult = data;
         if (isStarted()) {
@@ -77,4 +85,5 @@ public class MovieLoader extends Loader<MovieDbResult> {
             super.deliverResult(data);
         }
     }
+
 }

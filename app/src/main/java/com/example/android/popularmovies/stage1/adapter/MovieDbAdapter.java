@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import com.example.android.popularmovies.stage1.BuildConfig;
 import com.example.android.popularmovies.stage1.R;
 import com.example.android.popularmovies.stage1.data.api.MovieDbResult;
+import com.example.android.popularmovies.stage1.data.api.Result;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -20,10 +21,12 @@ public class MovieDbAdapter extends RecyclerView.Adapter<MovieDbAdapter.MovieVie
 
     private MovieDbResult mMovieDbResult;
     private Context mContext;
+    private OnItemClickListener mOnItemClickListener;
 
-    public MovieDbAdapter(Context mContext, MovieDbResult mMovieDbResult) {
+    public MovieDbAdapter(Context mContext, MovieDbResult mMovieDbResult, OnItemClickListener onItemClickListener) {
         this.mMovieDbResult = mMovieDbResult;
         this.mContext = mContext;
+        this.mOnItemClickListener = onItemClickListener;
     }
 
     static class MovieViewHolder extends RecyclerView.ViewHolder {
@@ -44,7 +47,6 @@ public class MovieDbAdapter extends RecyclerView.Adapter<MovieDbAdapter.MovieVie
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-
         View view = inflater.inflate(R.layout.item_activity, parent, false);
 
         return new MovieViewHolder(view);
@@ -52,7 +54,13 @@ public class MovieDbAdapter extends RecyclerView.Adapter<MovieDbAdapter.MovieVie
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-
+        final int tempPosition = position;
+        holder.mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnItemClickListener.onItemClick(mMovieDbResult.getResults().get(tempPosition));
+            }
+        });
         Picasso.with(getContext()).load(BuildConfig.BASE_POSTER_PATH + mMovieDbResult.getResults().get(position).getPosterPath()).into(holder.mImageView);
     }
 
@@ -60,4 +68,15 @@ public class MovieDbAdapter extends RecyclerView.Adapter<MovieDbAdapter.MovieVie
     public int getItemCount() {
         return mMovieDbResult.getResults().size();
     }
+
+    public void resetList() {
+        notifyItemRangeRemoved(0, mMovieDbResult.getResults().size());
+    }
+
+    public interface OnItemClickListener {
+
+        void onItemClick(Result item);
+
+    }
+
 }
