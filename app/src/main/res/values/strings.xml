@@ -7,4 +7,7 @@
     <string name="main_pop_movies">Pop Movies</string>
     <string name="main_top_movies">Top Movies</string>
     <string name="trailers">Trailers:</string>
+    <string name="mark_as_favorite">MARK AS FAVORITE</string>
+    <string name="install_app">Install Video App</string>
+    <string name="read_review">Read Review</string>
 </resources>

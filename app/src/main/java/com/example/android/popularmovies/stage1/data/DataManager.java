@@ -4,6 +4,7 @@ import com.example.android.popularmovies.stage1.BuildConfig;
 import com.example.android.popularmovies.stage1.data.api.ApiMovies;
 import com.example.android.popularmovies.stage1.data.api.MovieDbResult;
 import com.example.android.popularmovies.stage1.data.api.MovieTrailers;
+import com.example.android.popularmovies.stage1.data.api.Review;
 
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -94,11 +95,11 @@ public class DataManager {
                 });
     }
 
-    public void getMovieTrailers(Integer id,final NetworkTaskMoviesTrailers networkTask){
+    public void getMovieTrailers(Integer id, final NetworkTaskMoviesTrailers networkTask) {
         if (mApiMovies == null) {
             mApiMovies = mRetrofit.create(ApiMovies.class);
         }
-        mApiMovies.getMovieTrailers(id,BuildConfig.API_KEY)
+        mApiMovies.getMovieTrailers(id, BuildConfig.API_KEY)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Response<MovieTrailers>>() {
@@ -119,7 +120,32 @@ public class DataManager {
                 });
     }
 
-   public interface NetworkTaskMovieDBResult {
+    public void getMovieReview(Integer id, final ReadReview networkTask) {
+        if (mApiMovies == null) {
+            mApiMovies = mRetrofit.create(ApiMovies.class);
+        }
+        mApiMovies.getMovieReview(id, BuildConfig.API_KEY)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Response<Review>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        networkTask.onError(e);
+                    }
+
+                    @Override
+                    public void onNext(Response<Review> movieDbResultResponse) {
+                        networkTask.onInternet(movieDbResultResponse.body().getResults().get(0).getUrl());
+                    }
+                });
+    }
+
+    public interface NetworkTaskMovieDBResult {
         void onError(Throwable e);
 
         void onNext(Response<MovieDbResult> movieDbResultResponse);
@@ -129,5 +155,11 @@ public class DataManager {
         void onError(Throwable e);
 
         void onNext(Response<MovieTrailers> movieDbResultResponse);
+    }
+
+    public interface ReadReview {
+        void onInternet(String url);
+
+        void onError(Throwable e);
     }
 }

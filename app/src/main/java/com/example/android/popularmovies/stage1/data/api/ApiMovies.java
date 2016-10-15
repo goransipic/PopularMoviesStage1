@@ -23,4 +23,7 @@ public interface ApiMovies {
 
     @GET(BuildConfig.MOVIE_TRAILERS_ENDPOINT)
     Observable<Response<MovieTrailers>> getMovieTrailers(@Path("id") Integer id, @Query("api_key") String apiKey);
+
+    @GET(BuildConfig.MOVIE_REVIEW_ENDPOINT)
+    Observable<Response<Review>> getMovieReview(@Path("id") Integer id, @Query("api_key") String apiKey);
 }

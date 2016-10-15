@@ -22,4 +22,9 @@
         <item name="android:textColorPrimary">#757575</item>
     </style>
 
+    <style name="Button.Detail.Style" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:textColor">#747474</item>
+        <item name="colorAccent">#86E4DB</item>
+    </style>
+
 </resources>
