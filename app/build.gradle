@@ -10,6 +10,7 @@ android {
         buildConfigField "String", "BASE_POSTER_PATH", "\"http://image.tmdb.org/t/p/w185\""
         buildConfigField "String", "POPULAR_END_POINT", "\"popular\""
         buildConfigField "String", "TOP_RATED_ENDPOINT", "\"top_rated\""
+        buildConfigField "String", "MOVIE_TRAILERS_ENDPOINT", "\"{id}/videos\""
         buildConfigField "String", "API_ENDPOINT", "\"api_point\""
         minSdkVersion 16
         targetSdkVersion 24

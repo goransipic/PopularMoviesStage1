@@ -1,7 +1,6 @@
 package com.example.android.popularmovies.stage1.loader;
 
 import android.content.Context;
-import android.graphics.Movie;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.Loader;
@@ -44,7 +43,7 @@ public class MovieLoader extends Loader<MovieDbResult> {
 
         if ((mBundle != null) && (mBundle.getString(BuildConfig.API_ENDPOINT) != null)) {
             if (mBundle.getString(BuildConfig.API_ENDPOINT).equals(BuildConfig.POPULAR_END_POINT)) {
-                DataManager.getInstance().getPopularMovies(new DataManager.NetworkTask() {
+                DataManager.getInstance().getPopularMovies(new DataManager.NetworkTaskMovieDBResult() {
                     @Override
                     public void onError(Throwable e) {
                         deliverResult(null);
@@ -56,7 +55,7 @@ public class MovieLoader extends Loader<MovieDbResult> {
                     }
                 });
             } else {
-                DataManager.getInstance().getTopRatedMovies(new DataManager.NetworkTask() {
+                DataManager.getInstance().getTopRatedMovies(new DataManager.NetworkTaskMovieDBResult() {
                     @Override
                     public void onError(Throwable e) {
                         deliverResult(null);

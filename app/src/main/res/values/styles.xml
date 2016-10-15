@@ -19,6 +19,7 @@
 
     <style name="TextAppearance.Detail" parent="ThemeOverlay.AppCompat.Light">
         <item name="android:textColorSecondary">#747474</item>
+        <item name="android:textColorPrimary">#757575</item>
     </style>
 
 </resources>

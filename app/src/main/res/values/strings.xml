@@ -6,4 +6,5 @@
     <string name="please_check_internet_connection_and_try_again">Please check Internet connection, and try again !</string>
     <string name="main_pop_movies">Pop Movies</string>
     <string name="main_top_movies">Top Movies</string>
+    <string name="trailers">Trailers:</string>
 </resources>
