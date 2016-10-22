@@ -1,18 +1,25 @@
 package com.example.android.popularmovies.stage1.data;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Pair;
 
 import com.example.android.popularmovies.stage1.App;
 import com.example.android.popularmovies.stage1.BuildConfig;
 import com.example.android.popularmovies.stage1.data.api.ApiMovies;
 import com.example.android.popularmovies.stage1.data.api.MovieDbResult;
+import com.example.android.popularmovies.stage1.data.api.MovieTrailerItem;
 import com.example.android.popularmovies.stage1.data.api.MovieTrailers;
 import com.example.android.popularmovies.stage1.data.api.Result;
 import com.example.android.popularmovies.stage1.data.api.Review;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -21,6 +28,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -47,7 +56,7 @@ public class DataManager {
     }
     //  Database Operations
 
-    public void writePopularmovieData(final Result result, Bitmap bitmap) {
+    public void writePopularMovieData(final Result result, final List<MovieTrailerItem> movieTrailerItems, Bitmap bitmap) {
 
         final ContentValues contentValues = new ContentValues();
 
@@ -64,12 +73,10 @@ public class DataManager {
                 .subscribe(new Subscriber<byte[]>() {
                     @Override
                     public void onCompleted() {
-
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
                     }
 
                     @Override
@@ -82,11 +89,69 @@ public class DataManager {
                         contentValues.put(MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE, result.getVoteAverage());
                         contentValues.put(MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW, result.getOverview());
 
-                        sqLiteDatabase.insert(MovieFavoriteContract.Entry.TABLE_NAME, null, contentValues);
+                        long rowId = sqLiteDatabase.insert(MovieFavoriteContract.Entry.TABLE_NAME, null, contentValues);
+
+                        contentValues.clear();
+                        for (MovieTrailerItem movieTrailerItem : movieTrailerItems) {
+                            contentValues.put(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_VIDEO_LINK, movieTrailerItem.getKey());
+                            contentValues.put(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_MOVIE_ENTRY, rowId);
+                            sqLiteDatabase.insert(MovieFavoriteContract.MovieTrailers.TABLE_NAME,null,contentValues);
+                            contentValues.clear();
+                        }
+
+
+
                     }
                 });
 
 
+    }
+
+    public Observable<Pair<MovieDbResult, List<Bitmap>>> readPopularMoviesData() {
+        final List<Result> results = new ArrayList<>();
+        final List<Bitmap> bitmaps = new ArrayList<>();
+
+        return Observable.defer(new Func0<Observable<Pair<MovieDbResult, List<Bitmap>>>>() {
+            @Override
+            public Observable<Pair<MovieDbResult, List<Bitmap>>> call() {
+                SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getReadableDatabase();
+                Cursor cursor = sqLiteDatabase.query(
+                        MovieFavoriteContract.Entry.TABLE_NAME,
+                        new String[]{
+                                MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE,
+                                MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE,
+                                MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE,
+                                MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE,
+                                MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW}, null, null, null, null, null);
+
+                while (cursor.moveToNext()) {
+                    String originalTitle = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE));
+                    String releaseDate = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE));
+                    String voteAverage = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE));
+                    String overview = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW));
+
+                    Result result = new Result();
+                    result.setOriginalTitle(originalTitle);
+                    result.setReleaseDate(releaseDate);
+                    result.setVoteAverage(Double.parseDouble(voteAverage));
+                    result.setOverview(overview);
+
+                    results.add(result);
+
+                    byte[] image = cursor.getBlob(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE));
+
+                    bitmaps.add(BitmapFactory.decodeByteArray(image, 0, image.length));
+                }
+
+                cursor.close();
+
+                MovieDbResult movieDbResult = new MovieDbResult();
+                movieDbResult.setResults(results);
+                return Observable.just(new Pair<>(movieDbResult, bitmaps));
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
     //  Network operations

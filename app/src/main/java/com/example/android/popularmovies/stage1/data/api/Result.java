@@ -250,6 +250,9 @@ public class Result implements Parcelable {
         this.voteAverage = voteAverage;
     }
 
+    public Result(){
+
+    }
 
     protected Result(Parcel in) {
         posterPath = in.readString();

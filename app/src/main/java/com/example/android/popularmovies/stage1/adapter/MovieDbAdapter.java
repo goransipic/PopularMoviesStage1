@@ -1,6 +1,8 @@
 package com.example.android.popularmovies.stage1.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,8 @@ import com.example.android.popularmovies.stage1.data.api.MovieDbResult;
 import com.example.android.popularmovies.stage1.data.api.Result;
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 /**
  * Created by User on 8.10.2016..
  */
@@ -22,11 +26,14 @@ public class MovieDbAdapter extends RecyclerView.Adapter<MovieDbAdapter.MovieVie
     private MovieDbResult mMovieDbResult;
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
-
-    public MovieDbAdapter(Context mContext, MovieDbResult mMovieDbResult, OnItemClickListener onItemClickListener) {
+    private boolean loadOffline;
+    private List<Bitmap> bitmaps;
+    public MovieDbAdapter(Context mContext, MovieDbResult mMovieDbResult, List<Bitmap> bitmaps, boolean loadOffline , OnItemClickListener onItemClickListener) {
         this.mMovieDbResult = mMovieDbResult;
         this.mContext = mContext;
         this.mOnItemClickListener = onItemClickListener;
+        this.loadOffline = loadOffline;
+        this.bitmaps = bitmaps;
     }
 
     static class MovieViewHolder extends RecyclerView.ViewHolder {
@@ -61,7 +68,11 @@ public class MovieDbAdapter extends RecyclerView.Adapter<MovieDbAdapter.MovieVie
                 mOnItemClickListener.onItemClick(mMovieDbResult.getResults().get(tempPosition));
             }
         });
-        Picasso.with(getContext()).load(BuildConfig.BASE_POSTER_PATH + mMovieDbResult.getResults().get(position).getPosterPath()).into(holder.mImageView);
+        if (loadOffline){
+            holder.mImageView.setImageDrawable(new BitmapDrawable(getContext().getResources(),bitmaps.get(position)));
+        }else {
+            Picasso.with(getContext()).load(BuildConfig.BASE_POSTER_PATH + mMovieDbResult.getResults().get(position).getPosterPath()).into(holder.mImageView);
+        }
     }
 
     @Override

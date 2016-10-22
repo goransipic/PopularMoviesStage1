@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,10 +22,8 @@ import com.example.android.popularmovies.stage1.loader.DetailLoader;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<MovieTrailers> {
 
@@ -60,7 +57,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     public void onLoadFinished(Loader<MovieTrailers> loader, MovieTrailers data) {
         List<Object> objects = new ArrayList<>();
         objects.add(mResult);
-        List<MovieTrailerItem> movieTrailerItems = data.getResults();
+        final List<MovieTrailerItem> movieTrailerItems = data.getResults();
         objects.addAll(movieTrailerItems);
         mRecyclerView.setAdapter(new DetailAdapter(this, objects, new DetailAdapter.OnItemClicked() {
             @Override
@@ -79,7 +76,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 Picasso.with(DetailActivity.this).load(BuildConfig.BASE_POSTER_PATH + mResult.getPosterPath()).into(new Target() {
                     @Override
                     public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                        DataManager.getInstance().writePopularmovieData(mResult, bitmap);
+                        DataManager.getInstance().writePopularMovieData(mResult, movieTrailerItems ,bitmap);
                     }
 
                     @Override

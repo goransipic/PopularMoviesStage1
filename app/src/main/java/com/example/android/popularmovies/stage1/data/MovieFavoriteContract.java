@@ -36,6 +36,17 @@ public class MovieFavoriteContract {
 
         public static final String COLUMN_NAME_VOTE_AVERAGE = "average";
     }
+
+    public static class MovieTrailers implements BaseColumns {
+        /**
+         * Table name where records are stored for "entry" resources.
+         */
+        public static final String TABLE_NAME = "movieTrailers";
+
+        public static final String COLUMN_NAME_MOVIE_ENTRY = "movie_entry";
+
+        public static final String COLUMN_NAME_VIDEO_LINK = "video_link";
+    }
 }
 
 

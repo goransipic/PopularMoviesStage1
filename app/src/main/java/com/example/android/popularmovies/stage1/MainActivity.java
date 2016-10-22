@@ -1,6 +1,7 @@
 package com.example.android.popularmovies.stage1;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,16 +18,21 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.stage1.adapter.MovieDbAdapter;
+import com.example.android.popularmovies.stage1.data.DataManager;
 import com.example.android.popularmovies.stage1.data.api.MovieDbResult;
 import com.example.android.popularmovies.stage1.data.api.Result;
 import com.example.android.popularmovies.stage1.loader.MovieLoader;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import rx.Subscriber;
+import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<MovieDbResult> {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
     public static final String EXTRAS_FOR_DETAIL_ACTIVITY = "EXTRAS_FOR_DETAIL_ACTIVITY";
+    private static final String TAG = MainActivity.class.getSimpleName();
     private RecyclerView mRecyclerView;
     private ProgressBar mProgressBar;
     private TextView mTextView;
@@ -68,6 +75,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 bundleTopRated.putString(BuildConfig.API_ENDPOINT, BuildConfig.TOP_RATED_ENDPOINT);
                 getSupportLoaderManager().restartLoader(0, bundleTopRated, MainActivity.this);
                 return true;
+            case R.id.popular_movies:
+                DataManager.getInstance().readPopularMoviesData().subscribe(new Subscriber<Pair<MovieDbResult, List<Bitmap>>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Pair<MovieDbResult, List<Bitmap>> movieDbResultListPair) {
+                        populateRecyclerView(movieDbResultListPair.first,movieDbResultListPair.second,true);
+                    }
+                });
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -88,26 +112,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoadFinished(Loader<MovieDbResult> loader, final MovieDbResult data) {
         mProgressBar.setVisibility(View.GONE);
-        if (data == null){
+        if (data == null) {
             mTextView.setVisibility(View.VISIBLE);
             mRecyclerView.setVisibility(View.INVISIBLE);
             return;
         }
+        populateRecyclerView(data,null,false);
 
-
-
-        MovieDbAdapter movieDbAdapter = new MovieDbAdapter(MainActivity.this, data, new MovieDbAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Result item) {
-                Intent intent = new Intent(MainActivity.this,DetailActivity.class);
-                intent.putExtra(EXTRAS_FOR_DETAIL_ACTIVITY,item);
-
-                MainActivity.this.startActivity(intent);
-            }
-        });
-        mRecyclerView.setVisibility(View.VISIBLE);
-        mRecyclerView.setAdapter(movieDbAdapter);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this, 2));
         if (BuildConfig.DEBUG)
             Log.d(TAG, "onLoadFinished: " + data);
     }
@@ -115,7 +126,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<MovieDbResult> loader) {
 
-        ((MovieDbAdapter)mRecyclerView.getAdapter()).resetList();
+        ((MovieDbAdapter) mRecyclerView.getAdapter()).resetList();
 
     }
+
+    private void populateRecyclerView(MovieDbResult data,List<Bitmap> bitmaps, boolean offline) {
+        MovieDbAdapter movieDbAdapter = new MovieDbAdapter(MainActivity.this, data, bitmaps, offline, new MovieDbAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Result item) {
+                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                intent.putExtra(EXTRAS_FOR_DETAIL_ACTIVITY, item);
+
+                MainActivity.this.startActivity(intent);
+            }
+        });
+        mRecyclerView.setVisibility(View.VISIBLE);
+        mRecyclerView.setAdapter(movieDbAdapter);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this, 2));
+    }
+
 }
