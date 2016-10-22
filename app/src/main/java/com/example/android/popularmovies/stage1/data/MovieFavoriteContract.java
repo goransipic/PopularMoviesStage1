@@ -46,6 +46,8 @@ public class MovieFavoriteContract {
         public static final String COLUMN_NAME_MOVIE_ENTRY = "movie_entry";
 
         public static final String COLUMN_NAME_VIDEO_LINK = "video_link";
+
+        public static final String COLUMN_NAME_TRAILER_NAME = "trailer_name";
     }
 }
 

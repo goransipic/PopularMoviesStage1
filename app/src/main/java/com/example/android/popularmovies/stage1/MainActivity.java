@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static final String EXTRAS_FOR_DETAIL_ACTIVITY = "EXTRAS_FOR_DETAIL_ACTIVITY";
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static final String EXTRAS_FOR_OFFLINE = "EXTRAS_FOR_OFFLINE";
     private RecyclerView mRecyclerView;
     private ProgressBar mProgressBar;
     private TextView mTextView;
@@ -130,13 +131,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    private void populateRecyclerView(MovieDbResult data,List<Bitmap> bitmaps, boolean offline) {
+    private void populateRecyclerView(MovieDbResult data, List<Bitmap> bitmaps, final boolean offline) {
         MovieDbAdapter movieDbAdapter = new MovieDbAdapter(MainActivity.this, data, bitmaps, offline, new MovieDbAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Result item) {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra(EXTRAS_FOR_DETAIL_ACTIVITY, item);
-
+                if (offline) {
+                    intent.putExtra(EXTRAS_FOR_OFFLINE,true);
+                }
                 MainActivity.this.startActivity(intent);
             }
         });

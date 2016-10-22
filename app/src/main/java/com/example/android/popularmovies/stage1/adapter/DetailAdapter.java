@@ -1,6 +1,7 @@
 package com.example.android.popularmovies.stage1.adapter;
 
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.example.android.popularmovies.stage1.BuildConfig;
 import com.example.android.popularmovies.stage1.R;
+import com.example.android.popularmovies.stage1.data.DataManager;
 import com.example.android.popularmovies.stage1.data.api.MovieTrailerItem;
 import com.example.android.popularmovies.stage1.data.api.Result;
 import com.squareup.picasso.Picasso;
@@ -29,13 +31,15 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final Context mContext;
     private OnItemClicked mOnItemClicked;
     OnButtonClicked mOnFavoriteClicked, mOnReviewClicked;
+    private boolean mOffline;
 
-    public DetailAdapter(Context context, List<Object> objects, OnItemClicked mOnItemClicked, OnButtonClicked onFavoriteClicked, OnButtonClicked onReviewClicked) {
+    public DetailAdapter(Context context, List<Object> objects, boolean offline ,OnItemClicked mOnItemClicked, OnButtonClicked onFavoriteClicked, OnButtonClicked onReviewClicked) {
         this.mContext = context;
         this.mObjects = objects;
         this.mOnItemClicked = mOnItemClicked;
         mOnFavoriteClicked = onFavoriteClicked;
         mOnReviewClicked = onReviewClicked;
+        mOffline = offline;
     }
 
     private class HeaderViewHolder extends RecyclerView.ViewHolder {
@@ -95,7 +99,11 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         switch (viewType) {
             case HEADER:
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
-                Picasso.with(mContext).load(BuildConfig.BASE_POSTER_PATH + ((Result) mObjects.get(position)).getPosterPath()).into(headerViewHolder.mImageView);
+                if (mOffline){
+                    headerViewHolder.mImageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), DataManager.getInstance().readImageFromDatabase(((Result) mObjects.get(position)).getId())));
+                }else {
+                    Picasso.with(mContext).load(BuildConfig.BASE_POSTER_PATH + ((Result) mObjects.get(position)).getPosterPath()).into(headerViewHolder.mImageView);
+                }
                 headerViewHolder.mDetailDate.setText(((Result) mObjects.get(position)).getReleaseDate().split("-")[0]);
                 headerViewHolder.mDetailOverview.setText(((Result) mObjects.get(position)).getOverview());
                 headerViewHolder.mDetailVoteAverage.setText(String.format(Locale.getDefault(), "%.1f/10", ((Result) mObjects.get(position)).getVoteAverage()));

@@ -25,6 +25,8 @@ import com.squareup.picasso.Target;
 import java.util.ArrayList;
 import java.util.List;
 
+import rx.Subscriber;
+
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<MovieTrailers> {
 
     private Result mResult;
@@ -43,9 +45,26 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         TextView textView = (TextView) findViewById(R.id.tv_detail_name);
         textView.setText(mResult.getOriginalTitle());
 
-        getSupportLoaderManager().initLoader(0, null, this);
+        if (getIntent().getBooleanExtra(MainActivity.EXTRAS_FOR_OFFLINE, false)) {
+            DataManager.getInstance().readPopularMoviesTrailers(mResult.getId()).subscribe(new Subscriber<MovieTrailers>() {
+                @Override
+                public void onCompleted() {
 
+                }
 
+                @Override
+                public void onError(Throwable e) {
+
+                }
+
+                @Override
+                public void onNext(MovieTrailers movieTrailers) {
+                    populateRecyclerView(movieTrailers,true);
+                }
+            });
+        } else {
+            getSupportLoaderManager().initLoader(0, null, this);
+        }
     }
 
     @Override
@@ -55,11 +74,20 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoadFinished(Loader<MovieTrailers> loader, MovieTrailers data) {
+        populateRecyclerView(data,false);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<MovieTrailers> loader) {
+
+    }
+
+    private void populateRecyclerView(MovieTrailers data, boolean offline) {
         List<Object> objects = new ArrayList<>();
         objects.add(mResult);
         final List<MovieTrailerItem> movieTrailerItems = data.getResults();
         objects.addAll(movieTrailerItems);
-        mRecyclerView.setAdapter(new DetailAdapter(this, objects, new DetailAdapter.OnItemClicked() {
+        mRecyclerView.setAdapter(new DetailAdapter(this, objects,offline, new DetailAdapter.OnItemClicked() {
             @Override
             public void item(String key) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -76,7 +104,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 Picasso.with(DetailActivity.this).load(BuildConfig.BASE_POSTER_PATH + mResult.getPosterPath()).into(new Target() {
                     @Override
                     public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                        DataManager.getInstance().writePopularMovieData(mResult, movieTrailerItems ,bitmap);
+                        DataManager.getInstance().writePopularMovieData(mResult, movieTrailerItems, bitmap);
                     }
 
                     @Override
@@ -112,10 +140,5 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 });
             }
         }));
-    }
-
-    @Override
-    public void onLoaderReset(Loader<MovieTrailers> loader) {
-
     }
 }

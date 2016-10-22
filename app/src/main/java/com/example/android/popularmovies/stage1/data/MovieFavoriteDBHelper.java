@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class MovieFavoriteDBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 9;
+    public static final int DATABASE_VERSION = 15;
     public static final String DATABASE_NAME = "MovieFavorite.db";
 
     private static final String TEXT_TYPE = " TEXT";
@@ -32,6 +32,7 @@ public class MovieFavoriteDBHelper extends SQLiteOpenHelper {
                     MovieFavoriteContract.MovieTrailers._ID + " INTEGER PRIMARY KEY," +
                     MovieFavoriteContract.MovieTrailers.COLUMN_NAME_MOVIE_ENTRY + INTEGER_TYPE + COMMA_SEP +
                     MovieFavoriteContract.MovieTrailers.COLUMN_NAME_VIDEO_LINK + TEXT_TYPE + COMMA_SEP +
+                    MovieFavoriteContract.MovieTrailers.COLUMN_NAME_TRAILER_NAME + TEXT_TYPE + COMMA_SEP +
                     "FOREIGN KEY("+ MovieFavoriteContract.MovieTrailers.COLUMN_NAME_MOVIE_ENTRY +") REFERENCES entry(_id)"+
                     ")";
 

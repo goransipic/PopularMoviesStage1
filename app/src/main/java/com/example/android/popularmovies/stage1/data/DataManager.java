@@ -94,17 +94,64 @@ public class DataManager {
                         contentValues.clear();
                         for (MovieTrailerItem movieTrailerItem : movieTrailerItems) {
                             contentValues.put(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_VIDEO_LINK, movieTrailerItem.getKey());
+                            contentValues.put(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_TRAILER_NAME, movieTrailerItem.getName());
                             contentValues.put(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_MOVIE_ENTRY, rowId);
-                            sqLiteDatabase.insert(MovieFavoriteContract.MovieTrailers.TABLE_NAME,null,contentValues);
+                            sqLiteDatabase.insert(MovieFavoriteContract.MovieTrailers.TABLE_NAME, null, contentValues);
                             contentValues.clear();
                         }
-
 
 
                     }
                 });
 
 
+    }
+
+    public Bitmap readImageFromDatabase(int id) {
+        SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getReadableDatabase();
+        Bitmap bitmap = null;
+        Cursor cursor = sqLiteDatabase.query(MovieFavoriteContract.Entry.TABLE_NAME,
+                new String[]{MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE},
+                MovieFavoriteContract.Entry._ID + "= ?",
+                new String[]{Integer.toString(id)}, null, null, null);
+
+        while (cursor.moveToNext()) {
+            byte[] image = cursor.getBlob(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE));
+            bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
+        }
+        cursor.close();
+        return bitmap;
+    }
+
+    public Observable<MovieTrailers> readPopularMoviesTrailers(final int entryId) {
+        return Observable.defer(new Func0<Observable<MovieTrailers>>() {
+            @Override
+            public Observable<MovieTrailers> call() {
+                SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getReadableDatabase();
+
+                Cursor cursor = sqLiteDatabase.query(MovieFavoriteContract.MovieTrailers.TABLE_NAME,
+                        new String[]{MovieFavoriteContract.MovieTrailers.COLUMN_NAME_VIDEO_LINK,
+                                MovieFavoriteContract.MovieTrailers.COLUMN_NAME_TRAILER_NAME},
+                        MovieFavoriteContract.MovieTrailers.COLUMN_NAME_MOVIE_ENTRY + " = ?",
+                        new String[]{Integer.toString(entryId)}, null, null, null);
+
+                List<MovieTrailerItem> movieTrailerItems = new ArrayList<MovieTrailerItem>();
+
+                while (cursor.moveToNext()) {
+                    String link = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_VIDEO_LINK));
+                    String name = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.MovieTrailers.COLUMN_NAME_TRAILER_NAME));
+                    MovieTrailerItem movieTrailerItem = new MovieTrailerItem();
+                    movieTrailerItem.setKey(link);
+                    movieTrailerItem.setName(name);
+                    movieTrailerItems.add(movieTrailerItem);
+                }
+                cursor.close();
+                MovieTrailers movieTrailers = new MovieTrailers();
+                movieTrailers.setResults(movieTrailerItems);
+
+                return Observable.just(movieTrailers);
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     public Observable<Pair<MovieDbResult, List<Bitmap>>> readPopularMoviesData() {
@@ -118,6 +165,7 @@ public class DataManager {
                 Cursor cursor = sqLiteDatabase.query(
                         MovieFavoriteContract.Entry.TABLE_NAME,
                         new String[]{
+                                MovieFavoriteContract.Entry._ID,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE,
@@ -125,12 +173,14 @@ public class DataManager {
                                 MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW}, null, null, null, null, null);
 
                 while (cursor.moveToNext()) {
+                    Integer integer = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry._ID));
                     String originalTitle = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE));
                     String releaseDate = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE));
                     String voteAverage = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE));
                     String overview = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW));
 
                     Result result = new Result();
+                    result.setId(integer);
                     result.setOriginalTitle(originalTitle);
                     result.setReleaseDate(releaseDate);
                     result.setVoteAverage(Double.parseDouble(voteAverage));
