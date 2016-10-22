@@ -1,6 +1,8 @@
 package com.example.android.popularmovies.stage1;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -19,6 +21,7 @@ import com.example.android.popularmovies.stage1.data.api.MovieTrailers;
 import com.example.android.popularmovies.stage1.data.api.Result;
 import com.example.android.popularmovies.stage1.loader.DetailLoader;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -73,7 +76,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }, new DetailAdapter.OnButtonClicked() {
             @Override
             public void doAction() {
+                Picasso.with(DetailActivity.this).load(BuildConfig.BASE_POSTER_PATH + mResult.getPosterPath()).into(new Target() {
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        DataManager.getInstance().writePopularmovieData(mResult, bitmap);
+                    }
 
+                    @Override
+                    public void onBitmapFailed(Drawable errorDrawable) {
+
+                    }
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                    }
+                });
             }
         }, new DetailAdapter.OnButtonClicked() {
             @Override
