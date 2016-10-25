@@ -59,7 +59,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
                 @Override
                 public void onNext(MovieTrailers movieTrailers) {
-                    populateRecyclerView(movieTrailers,true);
+                    populateRecyclerView(movieTrailers, true);
                 }
             });
         } else {
@@ -74,7 +74,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoadFinished(Loader<MovieTrailers> loader, MovieTrailers data) {
-        populateRecyclerView(data,false);
+        populateRecyclerView(data, false);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         objects.add(mResult);
         final List<MovieTrailerItem> movieTrailerItems = data.getResults();
         objects.addAll(movieTrailerItems);
-        mRecyclerView.setAdapter(new DetailAdapter(this, objects,offline, new DetailAdapter.OnItemClicked() {
+        mRecyclerView.setAdapter(new DetailAdapter(this, objects, offline, new DetailAdapter.OnItemClicked() {
             @Override
             public void item(String key) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
