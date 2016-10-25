@@ -29,17 +29,19 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final int HEADER = 0, ITEMS = 1;
     private final List<Object> mObjects;
     private final Context mContext;
+    private final Integer mTableId;
     private OnItemClicked mOnItemClicked;
     OnButtonClicked mOnFavoriteClicked, mOnReviewClicked;
     private boolean mOffline;
 
-    public DetailAdapter(Context context, List<Object> objects, boolean offline ,OnItemClicked mOnItemClicked, OnButtonClicked onFavoriteClicked, OnButtonClicked onReviewClicked) {
+    public DetailAdapter(Context context, List<Object> objects, boolean offline ,Integer tableID ,OnItemClicked mOnItemClicked, OnButtonClicked onFavoriteClicked,OnButtonClicked onReviewClicked) {
         this.mContext = context;
         this.mObjects = objects;
         this.mOnItemClicked = mOnItemClicked;
         mOnFavoriteClicked = onFavoriteClicked;
         mOnReviewClicked = onReviewClicked;
         mOffline = offline;
+        mTableId = tableID;
     }
 
     private class HeaderViewHolder extends RecyclerView.ViewHolder {
@@ -100,7 +102,7 @@ public class DetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             case HEADER:
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
                 if (mOffline){
-                    headerViewHolder.mImageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), DataManager.getInstance().readImageFromDatabase(((Result) mObjects.get(position)).getId())));
+                    headerViewHolder.mImageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), DataManager.getInstance().readImageFromDatabase(mTableId)));
                 }else {
                     Picasso.with(mContext).load(BuildConfig.BASE_POSTER_PATH + ((Result) mObjects.get(position)).getPosterPath()).into(headerViewHolder.mImageView);
                 }

@@ -35,6 +35,8 @@ public class MovieFavoriteContract {
         public static final String COLUMN_NAME_OVERVIEW = "overview";
 
         public static final String COLUMN_NAME_VOTE_AVERAGE = "average";
+
+        public static final String COLUMN_NAME_MOVIE_ID = "movie_id";
     }
 
     public static class MovieTrailers implements BaseColumns {

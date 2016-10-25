@@ -82,7 +82,7 @@ public class DataManager {
                     @Override
                     public void onNext(byte[] bitmap) {
                         SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getWritableDatabase();
-
+                        contentValues.put(MovieFavoriteContract.Entry.COLUMN_NAME_MOVIE_ID,result.getId());
                         contentValues.put(MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE, result.getOriginalTitle());
                         contentValues.put(MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE, bitmap);
                         contentValues.put(MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE, result.getReleaseDate());
@@ -154,33 +154,37 @@ public class DataManager {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    public Observable<Pair<MovieDbResult, List<Bitmap>>> readPopularMoviesData() {
+    public Observable<Pair<MovieDbResult, Pair<Integer,List<Bitmap>> >> readPopularMoviesData() {
         final List<Result> results = new ArrayList<>();
         final List<Bitmap> bitmaps = new ArrayList<>();
 
-        return Observable.defer(new Func0<Observable<Pair<MovieDbResult, List<Bitmap>>>>() {
+        return Observable.defer(new Func0<Observable<Pair<MovieDbResult,Pair<Integer,List<Bitmap>> >>>() {
             @Override
-            public Observable<Pair<MovieDbResult, List<Bitmap>>> call() {
+            public Observable<Pair<MovieDbResult,Pair<Integer, List<Bitmap>> >> call() {
                 SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getReadableDatabase();
                 Cursor cursor = sqLiteDatabase.query(
                         MovieFavoriteContract.Entry.TABLE_NAME,
                         new String[]{
                                 MovieFavoriteContract.Entry._ID,
+                                MovieFavoriteContract.Entry.COLUMN_NAME_MOVIE_ID,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW}, null, null, null, null, null);
 
+                Pair<Integer,List<Bitmap>> listPair = null;
+
                 while (cursor.moveToNext()) {
-                    Integer integer = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry._ID));
+                    Integer movieId = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_MOVIE_ID));
+                    Integer tableId = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry._ID));
                     String originalTitle = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE));
                     String releaseDate = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE));
                     String voteAverage = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE));
                     String overview = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW));
 
                     Result result = new Result();
-                    result.setId(integer);
+                    result.setId(movieId);
                     result.setOriginalTitle(originalTitle);
                     result.setReleaseDate(releaseDate);
                     result.setVoteAverage(Double.parseDouble(voteAverage));
@@ -191,13 +195,16 @@ public class DataManager {
                     byte[] image = cursor.getBlob(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_IMAGE));
 
                     bitmaps.add(BitmapFactory.decodeByteArray(image, 0, image.length));
+
+                    listPair = new Pair<Integer, List<Bitmap>>(tableId,bitmaps);
                 }
 
                 cursor.close();
 
                 MovieDbResult movieDbResult = new MovieDbResult();
                 movieDbResult.setResults(results);
-                return Observable.just(new Pair<>(movieDbResult, bitmaps));
+
+                return Observable.just(new Pair<>(movieDbResult, listPair));
             }
         })
                 .subscribeOn(Schedulers.io())

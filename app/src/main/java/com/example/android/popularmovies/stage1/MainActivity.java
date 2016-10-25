@@ -34,10 +34,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static final String EXTRAS_FOR_DETAIL_ACTIVITY = "EXTRAS_FOR_DETAIL_ACTIVITY";
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String EXTRAS_FOR_OFFLINE = "EXTRAS_FOR_OFFLINE";
+    public static final String EXTRAS_FOR_TABLE_ID = "EXTRAS_FOR_TABLE_ID";
     private RecyclerView mRecyclerView;
     private ProgressBar mProgressBar;
     private TextView mTextView;
-
+    private Integer mTableID;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 getSupportLoaderManager().restartLoader(0, bundleTopRated, MainActivity.this);
                 return true;
             case R.id.popular_movies:
-                DataManager.getInstance().readPopularMoviesData().subscribe(new Subscriber<Pair<MovieDbResult, List<Bitmap>>>() {
+                DataManager.getInstance().readPopularMoviesData().subscribe(new Subscriber<Pair<MovieDbResult, Pair<Integer, List<Bitmap>>>>() {
                     @Override
                     public void onCompleted() {
 
@@ -89,8 +90,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     }
 
                     @Override
-                    public void onNext(Pair<MovieDbResult, List<Bitmap>> movieDbResultListPair) {
-                        populateRecyclerView(movieDbResultListPair.first,movieDbResultListPair.second,true);
+                    public void onNext(Pair<MovieDbResult, Pair<Integer, List<Bitmap>>> movieDbResultList) {
+                        mTableID = movieDbResultList.second.first;
+                        populateRecyclerView(movieDbResultList.first, movieDbResultList.second.second, true);
                     }
                 });
             default:
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mRecyclerView.setVisibility(View.INVISIBLE);
             return;
         }
-        populateRecyclerView(data,null,false);
+        populateRecyclerView(data, null, false);
 
         if (BuildConfig.DEBUG)
             Log.d(TAG, "onLoadFinished: " + data);
@@ -138,7 +140,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra(EXTRAS_FOR_DETAIL_ACTIVITY, item);
                 if (offline) {
-                    intent.putExtra(EXTRAS_FOR_OFFLINE,true);
+                    intent.putExtra(EXTRAS_FOR_OFFLINE, true);
+                    intent.putExtra(EXTRAS_FOR_TABLE_ID,mTableID);
                 }
                 MainActivity.this.startActivity(intent);
             }

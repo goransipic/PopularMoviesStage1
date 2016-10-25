@@ -46,7 +46,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         textView.setText(mResult.getOriginalTitle());
 
         if (getIntent().getBooleanExtra(MainActivity.EXTRAS_FOR_OFFLINE, false)) {
-            DataManager.getInstance().readPopularMoviesTrailers(mResult.getId()).subscribe(new Subscriber<MovieTrailers>() {
+            DataManager.getInstance().readPopularMoviesTrailers(getIntent().getIntExtra(MainActivity.EXTRAS_FOR_TABLE_ID,0)).subscribe(new Subscriber<MovieTrailers>() {
                 @Override
                 public void onCompleted() {
 
@@ -87,7 +87,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         objects.add(mResult);
         final List<MovieTrailerItem> movieTrailerItems = data.getResults();
         objects.addAll(movieTrailerItems);
-        mRecyclerView.setAdapter(new DetailAdapter(this, objects, offline, new DetailAdapter.OnItemClicked() {
+        mRecyclerView.setAdapter(new DetailAdapter(this, objects, offline,getIntent().getIntExtra(MainActivity.EXTRAS_FOR_TABLE_ID,0),new DetailAdapter.OnItemClicked() {
             @Override
             public void item(String key) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -135,7 +135,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
                     @Override
                     public void onError(Throwable e) {
-
+                        Toast.makeText(DetailActivity.this,"There is not any Review",Toast.LENGTH_LONG).show();
                     }
                 });
             }
