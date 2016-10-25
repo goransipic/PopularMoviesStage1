@@ -1,6 +1,8 @@
 package com.example.android.popularmovies.stage1;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -19,6 +21,8 @@ import android.widget.TextView;
 
 import com.example.android.popularmovies.stage1.adapter.MovieDbAdapter;
 import com.example.android.popularmovies.stage1.data.DataManager;
+import com.example.android.popularmovies.stage1.data.MovieFavoriteContract;
+import com.example.android.popularmovies.stage1.data.MovieFavoriteDBHelper;
 import com.example.android.popularmovies.stage1.data.api.MovieDbResult;
 import com.example.android.popularmovies.stage1.data.api.Result;
 import com.example.android.popularmovies.stage1.loader.MovieLoader;
@@ -78,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 getSupportLoaderManager().restartLoader(0, bundleTopRated, MainActivity.this);
                 return true;
             case R.id.popular_movies:
-                DataManager.getInstance().readPopularMoviesData().subscribe(new Subscriber<Pair<MovieDbResult, Pair<Integer, List<Bitmap>>>>() {
+                DataManager.getInstance().readPopularMoviesData().subscribe(new Subscriber<Pair<MovieDbResult, List<Bitmap>>>() {
                     @Override
                     public void onCompleted() {
 
@@ -90,9 +94,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     }
 
                     @Override
-                    public void onNext(Pair<MovieDbResult, Pair<Integer, List<Bitmap>>> movieDbResultList) {
-                        mTableID = movieDbResultList.second.first;
-                        populateRecyclerView(movieDbResultList.first, movieDbResultList.second.second, true);
+                    public void onNext(Pair<MovieDbResult, List<Bitmap>> movieDbResultList) {
+                        populateRecyclerView(movieDbResultList.first, movieDbResultList.second, true);
                     }
                 });
             default:
@@ -134,14 +137,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void populateRecyclerView(MovieDbResult data, List<Bitmap> bitmaps, final boolean offline) {
-        MovieDbAdapter movieDbAdapter = new MovieDbAdapter(MainActivity.this, data, bitmaps, offline, new MovieDbAdapter.OnItemClickListener() {
+        final MovieDbAdapter movieDbAdapter = new MovieDbAdapter(MainActivity.this, data, bitmaps, offline, new MovieDbAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Result item) {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra(EXTRAS_FOR_DETAIL_ACTIVITY, item);
                 if (offline) {
+                    int i = DataManager.getInstance().getMovieID(item);
+
                     intent.putExtra(EXTRAS_FOR_OFFLINE, true);
-                    intent.putExtra(EXTRAS_FOR_TABLE_ID,mTableID);
+                    intent.putExtra(EXTRAS_FOR_TABLE_ID,i);
                 }
                 MainActivity.this.startActivity(intent);
             }
@@ -150,5 +155,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mRecyclerView.setAdapter(movieDbAdapter);
         mRecyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this, 2));
     }
+
+
 
 }

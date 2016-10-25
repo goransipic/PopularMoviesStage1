@@ -154,13 +154,13 @@ public class DataManager {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    public Observable<Pair<MovieDbResult, Pair<Integer,List<Bitmap>> >> readPopularMoviesData() {
+    public Observable<Pair<MovieDbResult, List<Bitmap>> > readPopularMoviesData() {
         final List<Result> results = new ArrayList<>();
         final List<Bitmap> bitmaps = new ArrayList<>();
 
-        return Observable.defer(new Func0<Observable<Pair<MovieDbResult,Pair<Integer,List<Bitmap>> >>>() {
+        return Observable.defer(new Func0<Observable<Pair<MovieDbResult,List<Bitmap>> >>() {
             @Override
-            public Observable<Pair<MovieDbResult,Pair<Integer, List<Bitmap>> >> call() {
+            public Observable<Pair<MovieDbResult,List<Bitmap>> > call() {
                 SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getReadableDatabase();
                 Cursor cursor = sqLiteDatabase.query(
                         MovieFavoriteContract.Entry.TABLE_NAME,
@@ -173,11 +173,11 @@ public class DataManager {
                                 MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE,
                                 MovieFavoriteContract.Entry.COLUMN_NAME_OVERVIEW}, null, null, null, null, null);
 
-                Pair<Integer,List<Bitmap>> listPair = null;
+                //Pair<Integer,List<Bitmap>> listPair = null;
 
                 while (cursor.moveToNext()) {
                     Integer movieId = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_MOVIE_ID));
-                    Integer tableId = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry._ID));
+                    //Integer tableId = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry._ID));
                     String originalTitle = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_ORIGINAL_TITLE));
                     String releaseDate = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_RELEASE_DATE));
                     String voteAverage = cursor.getString(cursor.getColumnIndex(MovieFavoriteContract.Entry.COLUMN_NAME_VOTE_AVERAGE));
@@ -196,7 +196,7 @@ public class DataManager {
 
                     bitmaps.add(BitmapFactory.decodeByteArray(image, 0, image.length));
 
-                    listPair = new Pair<Integer, List<Bitmap>>(tableId,bitmaps);
+                    //listPair = new Pair<Integer, List<Bitmap>>(tableId,bitmaps);
                 }
 
                 cursor.close();
@@ -204,11 +204,29 @@ public class DataManager {
                 MovieDbResult movieDbResult = new MovieDbResult();
                 movieDbResult.setResults(results);
 
-                return Observable.just(new Pair<>(movieDbResult, listPair));
+                return Observable.just(new Pair<>(movieDbResult, bitmaps));
             }
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public int getMovieID(Result item) {
+        MovieFavoriteDBHelper mMovieFavoriteDBHelper = new MovieFavoriteDBHelper(App.getApplication());
+        SQLiteDatabase sqLiteDatabase = mMovieFavoriteDBHelper.getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.query(MovieFavoriteContract.Entry.TABLE_NAME,
+                new String[]{MovieFavoriteContract.Entry._ID},
+                MovieFavoriteContract.Entry.COLUMN_NAME_MOVIE_ID + "=?",
+                new String[]{item.getId().toString()},
+                null,
+                null,
+                null);
+
+        int i = 0;
+        while (cursor.moveToNext()){
+            i = cursor.getInt(cursor.getColumnIndex(MovieFavoriteContract.Entry._ID));
+        }
+        return i;
     }
 
     //  Network operations
